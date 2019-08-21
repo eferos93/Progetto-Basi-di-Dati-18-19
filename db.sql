@@ -51,8 +51,7 @@ CREATE TABLE paziente(
 )ENGINE = innodb;
 
 CREATE TABLE specializzazione(
-    nome VARCHAR(256) NOT NULL,
-    descrizione VARCHAR(1000)
+    nome VARCHAR(256) NOT NULL
 
     PRIMARY KEY(nome)
 )ENGINE = innodb;
