@@ -580,21 +580,6 @@
       </Temporality>
       <Links>
         <Link>
-          <ParticipantKey>Entity:Reparto</ParticipantKey>
-          <RelationKey>Relation:è primario</RelationKey>
-          <Description></Description>
-          <Role>Second</Role>
-          <Cardinality>
-            <MinSS>1</MinSS>
-            <MaxSS>1</MaxSS>
-            <MinLS>1</MinLS>
-            <MaxLS>-1</MaxLS>
-            <KEY>1:1 [1:M]</KEY>
-            <PROCESSED>false</PROCESSED>
-          </Cardinality>
-          <PROCESSED>false</PROCESSED>
-        </Link>
-        <Link>
           <ParticipantKey>Entity:Medico</ParticipantKey>
           <RelationKey>Relation:è primario</RelationKey>
           <Description></Description>
@@ -605,6 +590,21 @@
             <MinLS>1</MinLS>
             <MaxLS>1</MaxLS>
             <KEY>0:1 [1:1]</KEY>
+            <PROCESSED>false</PROCESSED>
+          </Cardinality>
+          <PROCESSED>false</PROCESSED>
+        </Link>
+        <Link>
+          <ParticipantKey>Entity:Reparto</ParticipantKey>
+          <RelationKey>Relation:è primario</RelationKey>
+          <Description></Description>
+          <Role>Second</Role>
+          <Cardinality>
+            <MinSS>1</MinSS>
+            <MaxSS>1</MaxSS>
+            <MinLS>1</MinLS>
+            <MaxLS>-1</MaxLS>
+            <KEY>1:1 [1:M]</KEY>
             <PROCESSED>false</PROCESSED>
           </Cardinality>
           <PROCESSED>false</PROCESSED>
@@ -663,31 +663,31 @@
       </Temporality>
       <Links>
         <Link>
-          <ParticipantKey>Entity:Medico</ParticipantKey>
-          <RelationKey>Relation:afferisce</RelationKey>
-          <Description></Description>
-          <Role reference="../../../../Relation/Links/Link[2]/Role"/>
-          <Cardinality>
-            <MinSS>0</MinSS>
-            <MaxSS>1</MaxSS>
-            <MinLS>1</MinLS>
-            <MaxLS>-1</MaxLS>
-            <KEY>0:1 [1:M]</KEY>
-            <PROCESSED>false</PROCESSED>
-          </Cardinality>
-          <PROCESSED>false</PROCESSED>
-        </Link>
-        <Link>
           <ParticipantKey>Entity:Reparto</ParticipantKey>
           <RelationKey>Relation:afferisce</RelationKey>
           <Description></Description>
-          <Role reference="../../../../Relation/Links/Link/Role"/>
+          <Role reference="../../../../Relation/Links/Link[2]/Role"/>
           <Cardinality>
             <MinSS>1</MinSS>
             <MaxSS>-1</MaxSS>
             <MinLS>1</MinLS>
             <MaxLS>-1</MaxLS>
             <KEY>1:M [1:M]</KEY>
+            <PROCESSED>false</PROCESSED>
+          </Cardinality>
+          <PROCESSED>false</PROCESSED>
+        </Link>
+        <Link>
+          <ParticipantKey>Entity:Medico</ParticipantKey>
+          <RelationKey>Relation:afferisce</RelationKey>
+          <Description></Description>
+          <Role reference="../../../../Relation/Links/Link/Role"/>
+          <Cardinality>
+            <MinSS>0</MinSS>
+            <MaxSS>1</MaxSS>
+            <MinLS>1</MinLS>
+            <MaxLS>-1</MaxLS>
+            <KEY>0:1 [1:M]</KEY>
             <PROCESSED>false</PROCESSED>
           </Cardinality>
           <PROCESSED>false</PROCESSED>
@@ -746,31 +746,31 @@
       </Temporality>
       <Links>
         <Link>
-          <ParticipantKey>Entity:Camera</ParticipantKey>
-          <RelationKey>Relation:contiene</RelationKey>
-          <Description></Description>
-          <Role reference="../../../../Relation/Links/Link/Role"/>
-          <Cardinality>
-            <MinSS>1</MinSS>
-            <MaxSS>1</MaxSS>
-            <MinLS>1</MinLS>
-            <MaxLS>-1</MaxLS>
-            <KEY>1:1 [1:M]</KEY>
-            <PROCESSED>false</PROCESSED>
-          </Cardinality>
-          <PROCESSED>false</PROCESSED>
-        </Link>
-        <Link>
           <ParticipantKey>Entity:Reparto</ParticipantKey>
           <RelationKey>Relation:contiene</RelationKey>
           <Description></Description>
-          <Role reference="../../../../Relation/Links/Link[2]/Role"/>
+          <Role reference="../../../../Relation/Links/Link/Role"/>
           <Cardinality>
             <MinSS>1</MinSS>
             <MaxSS>-1</MaxSS>
             <MinLS>1</MinLS>
             <MaxLS>-1</MaxLS>
             <KEY>1:M [1:M]</KEY>
+            <PROCESSED>false</PROCESSED>
+          </Cardinality>
+          <PROCESSED>false</PROCESSED>
+        </Link>
+        <Link>
+          <ParticipantKey>Entity:Camera</ParticipantKey>
+          <RelationKey>Relation:contiene</RelationKey>
+          <Description></Description>
+          <Role reference="../../../../Relation/Links/Link[2]/Role"/>
+          <Cardinality>
+            <MinSS>1</MinSS>
+            <MaxSS>1</MaxSS>
+            <MinLS>1</MinLS>
+            <MaxLS>-1</MaxLS>
+            <KEY>1:1 [1:M]</KEY>
             <PROCESSED>false</PROCESSED>
           </Cardinality>
           <PROCESSED>false</PROCESSED>
@@ -829,31 +829,31 @@
       </Temporality>
       <Links>
         <Link>
-          <ParticipantKey>Entity:Reparto</ParticipantKey>
-          <RelationKey>Relation:fa parte</RelationKey>
-          <Description></Description>
-          <Role reference="../../../../Relation/Links/Link[2]/Role"/>
-          <Cardinality>
-            <MinSS>1</MinSS>
-            <MaxSS>-1</MaxSS>
-            <MinLS>1</MinLS>
-            <MaxLS>-1</MaxLS>
-            <KEY>1:M [1:M]</KEY>
-            <PROCESSED>false</PROCESSED>
-          </Cardinality>
-          <PROCESSED>false</PROCESSED>
-        </Link>
-        <Link>
           <ParticipantKey>Entity:Letto</ParticipantKey>
           <RelationKey>Relation:fa parte</RelationKey>
           <Description></Description>
-          <Role reference="../../../../Relation/Links/Link/Role"/>
+          <Role reference="../../../../Relation/Links/Link[2]/Role"/>
           <Cardinality>
             <MinSS>1</MinSS>
             <MaxSS>1</MaxSS>
             <MinLS>1</MinLS>
             <MaxLS>-1</MaxLS>
             <KEY>1:1 [1:M]</KEY>
+            <PROCESSED>false</PROCESSED>
+          </Cardinality>
+          <PROCESSED>false</PROCESSED>
+        </Link>
+        <Link>
+          <ParticipantKey>Entity:Reparto</ParticipantKey>
+          <RelationKey>Relation:fa parte</RelationKey>
+          <Description></Description>
+          <Role reference="../../../../Relation/Links/Link/Role"/>
+          <Cardinality>
+            <MinSS>1</MinSS>
+            <MaxSS>-1</MaxSS>
+            <MinLS>1</MinLS>
+            <MaxLS>-1</MaxLS>
+            <KEY>1:M [1:M]</KEY>
             <PROCESSED>false</PROCESSED>
           </Cardinality>
           <PROCESSED>false</PROCESSED>
@@ -915,7 +915,7 @@
           <ParticipantKey>Entity:Camera</ParticipantKey>
           <RelationKey>Relation:si trova</RelationKey>
           <Description></Description>
-          <Role reference="../../../../Relation/Links/Link[2]/Role"/>
+          <Role reference="../../../../Relation/Links/Link/Role"/>
           <Cardinality>
             <MinSS>1</MinSS>
             <MaxSS>-1</MaxSS>
@@ -930,7 +930,7 @@
           <ParticipantKey>Entity:Letto</ParticipantKey>
           <RelationKey>Relation:si trova</RelationKey>
           <Description></Description>
-          <Role reference="../../../../Relation/Links/Link/Role"/>
+          <Role reference="../../../../Relation/Links/Link[2]/Role"/>
           <Cardinality>
             <MinSS>1</MinSS>
             <MaxSS>1</MaxSS>
@@ -998,7 +998,7 @@
           <ParticipantKey>Entity:Letto</ParticipantKey>
           <RelationKey>Relation:Occupa attualmente</RelationKey>
           <Description></Description>
-          <Role reference="../../../../Relation/Links/Link/Role"/>
+          <Role reference="../../../../Relation/Links/Link[2]/Role"/>
           <Cardinality>
             <MinSS>0</MinSS>
             <MaxSS>1</MaxSS>
@@ -1013,7 +1013,7 @@
           <ParticipantKey>Entity:Paziente</ParticipantKey>
           <RelationKey>Relation:Occupa attualmente</RelationKey>
           <Description></Description>
-          <Role reference="../../../../Relation/Links/Link[2]/Role"/>
+          <Role reference="../../../../Relation/Links/Link/Role"/>
           <Cardinality>
             <MinSS>0</MinSS>
             <MaxSS>1</MaxSS>
@@ -1081,13 +1081,13 @@
           <ParticipantKey>Entity:Medico</ParticipantKey>
           <RelationKey>Relation:Effettuata da</RelationKey>
           <Description></Description>
-          <Role reference="../../../../Relation/Links/Link[2]/Role"/>
+          <Role reference="../../../../Relation/Links/Link/Role"/>
           <Cardinality>
-            <MinSS>1</MinSS>
+            <MinSS>0</MinSS>
             <MaxSS>-1</MaxSS>
             <MinLS>1</MinLS>
             <MaxLS>-1</MaxLS>
-            <KEY>1:M [1:M]</KEY>
+            <KEY>0:M [1:M]</KEY>
             <PROCESSED>false</PROCESSED>
           </Cardinality>
           <PROCESSED>false</PROCESSED>
@@ -1096,7 +1096,7 @@
           <ParticipantKey>Entity:Diagnosi</ParticipantKey>
           <RelationKey>Relation:Effettuata da</RelationKey>
           <Description></Description>
-          <Role reference="../../../../Relation/Links/Link/Role"/>
+          <Role reference="../../../../Relation/Links/Link[2]/Role"/>
           <Cardinality>
             <MinSS>1</MinSS>
             <MaxSS>1</MaxSS>
@@ -1164,7 +1164,7 @@
           <ParticipantKey>Entity:Diagnosi</ParticipantKey>
           <RelationKey>Relation:Riferita a </RelationKey>
           <Description></Description>
-          <Role reference="../../../../Relation/Links/Link[2]/Role"/>
+          <Role reference="../../../../Relation/Links/Link/Role"/>
           <Cardinality>
             <MinSS>1</MinSS>
             <MaxSS>1</MaxSS>
@@ -1179,7 +1179,7 @@
           <ParticipantKey>Entity:Paziente</ParticipantKey>
           <RelationKey>Relation:Riferita a </RelationKey>
           <Description></Description>
-          <Role reference="../../../../Relation/Links/Link/Role"/>
+          <Role reference="../../../../Relation/Links/Link[2]/Role"/>
           <Cardinality>
             <MinSS>0</MinSS>
             <MaxSS>-1</MaxSS>
@@ -1244,7 +1244,7 @@
       </Temporality>
       <Links>
         <Link>
-          <ParticipantKey>Entity:Letto</ParticipantKey>
+          <ParticipantKey>Entity:Paziente</ParticipantKey>
           <RelationKey>Relation:Ricovero passato</RelationKey>
           <Description></Description>
           <Role reference="../../../../Relation/Links/Link/Role"/>
@@ -1259,7 +1259,7 @@
           <PROCESSED>false</PROCESSED>
         </Link>
         <Link>
-          <ParticipantKey>Entity:Paziente</ParticipantKey>
+          <ParticipantKey>Entity:Letto</ParticipantKey>
           <RelationKey>Relation:Ricovero passato</RelationKey>
           <Description></Description>
           <Role reference="../../../../Relation/Links/Link[2]/Role"/>
@@ -2986,73 +2986,6 @@
       </Bounds>
       <Visible>true</Visible>
       <KEY>Attribute:Entity:Reparto.n° camere</KEY>
-      <PROCESSED>false</PROCESSED>
-    </Attribute>
-    <Attribute>
-      <Name>Anno</Name>
-      <IsKey>false</IsKey>
-      <DataType>
-        <Type>com.chronogeograph.datatypes.CGG_VarChar</Type>
-        <IsNullable>true</IsNullable>
-        <Lenght>10</Lenght>
-        <Scale>0</Scale>
-        <PROCESSED>false</PROCESSED>
-      </DataType>
-      <IsDerived>false</IsDerived>
-      <Temporality>
-        <ValidTime>
-          <IsActive>false</IsActive>
-          <TemporalGranularityKey></TemporalGranularityKey>
-          <KEY>ValidTime:(none)</KEY>
-          <PROCESSED>false</PROCESSED>
-        </ValidTime>
-        <HasTransactionTime>false</HasTransactionTime>
-        <EventTime>
-          <startevent>false</startevent>
-          <endevent>false</endevent>
-          <TemporalGranularityKey></TemporalGranularityKey>
-          <KEY>EventTime:(none)</KEY>
-          <PROCESSED>false</PROCESSED>
-        </EventTime>
-        <AvailabilityTime>
-          <IsActive>false</IsActive>
-          <TemporalGranularityKey></TemporalGranularityKey>
-          <KEY>AvailabilityTime:(none)</KEY>
-          <PROCESSED>false</PROCESSED>
-        </AvailabilityTime>
-        <KEY>FactTimeSupport:v|t|e|a</KEY>
-        <PROCESSED>false</PROCESSED>
-      </Temporality>
-      <Cardinality>
-        <MinSS>1</MinSS>
-        <MaxSS>1</MaxSS>
-        <MinLS>1</MinLS>
-        <MaxLS>-1</MaxLS>
-        <KEY>1:1 [1:M]</KEY>
-        <PROCESSED>false</PROCESSED>
-      </Cardinality>
-      <listState/>
-      <ed>false</ed>
-      <LeaderKey>Entity:Diagnosi</LeaderKey>
-      <Bounds class="Bounds" serialization="custom">
-        <java.awt.geom.Rectangle2D-Double>
-          <default>
-            <height>20.0</height>
-            <width>80.0</width>
-            <x>473.0</x>
-            <y>171.0</y>
-          </default>
-        </java.awt.geom.Rectangle2D-Double>
-        <Bounds>
-          <default/>
-          <double>473.0</double>
-          <double>171.0</double>
-          <double>80.0</double>
-          <double>20.0</double>
-        </Bounds>
-      </Bounds>
-      <Visible>true</Visible>
-      <KEY>Attribute:Entity:Diagnosi.Anno</KEY>
       <PROCESSED>false</PROCESSED>
     </Attribute>
     <Attribute>

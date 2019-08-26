@@ -2,7 +2,7 @@ import java.util.ArrayList;
 
 class GeneraNumeri {
     public static void main(String [] args) {
-        ArrayList<String> lista = new ArrayList<>();
+        /*ArrayList<String> lista = new ArrayList<>();
         for( int i =0; i<=Integer.parseInt(args[0]); i++) {
             String cf = "";
             do {
@@ -11,5 +11,9 @@ class GeneraNumeri {
             lista.add("('" + cf + "', ");
         }
         lista.forEach( n -> System.out.println(n));
+        */
+        for(int i=1; i<=Integer.parseInt(args[0]); i++) {
+            System.out.println("('" + (String.valueOf((char) (i + 64))) + "', '" + args[1] + "'),");
+        }
     }
 }
