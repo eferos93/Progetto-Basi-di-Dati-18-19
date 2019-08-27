@@ -18,26 +18,26 @@ CREATE TABLE reparto(
     letti_disponibili INTEGER NOT NULL,
     letti_occupati INTEGER NOT NULL,
     primario VARCHAR(16) NOT NULL,
-    data_inizio DATE NOT NULL
+    data_inizio DATE NOT NULL,
 
-    PRIMARY KEY(nome)
-    FOREIGN key(primario) REFERENCES medico(cod_fiscale)
+    PRIMARY KEY (nome),
+    FOREIGN KEY (primario) REFERENCES medico (cod_fiscale)
         ON UPDATE NO ACTION ON DELETE NO ACTION
 )ENGINE = innodb;
 
 CREATE TABLE camera(
-    id VARCHAR(1) NOT NULL,
-    reparto VARCHAR(256) NOT NULL
+    id VARCHAR(2) NOT NULL,
+    reparto VARCHAR(256) NOT NULL,
 
-    PRIMARY KEY(id,reparto)
+    PRIMARY KEY(id,reparto),
     FOREIGN KEY(reparto) REFERENCES reparto(nome)
 )ENGINE = innodb;
 
 CREATE TABLE letto(
     id INTEGER NOT NULL,
-    reparto VARCHAR(256) NOT NULL
+    reparto VARCHAR(256) NOT NULL,
 
-    PRIMARY KEY(id,reparto) 
+    PRIMARY KEY(id,reparto), 
     FOREIGN KEY(reparto) REFERENCES reparto(nome) 
         ON UPDATE NO ACTION ON DELETE CASCADE
 )ENGINE = innodb;
@@ -46,22 +46,22 @@ CREATE TABLE paziente(
     cod_fiscale VARCHAR(16) NOT NULL,
     nome VARCHAR(256) NOT NULL,
     cognome VARCHAR(256) NOT NULL,
-    anno_di_nascita INTEGER NOT NULL
+    anno_di_nascita INTEGER NOT NULL,
 
     PRIMARY KEY(cod_fiscale)
 )ENGINE = innodb;
 
 CREATE TABLE specializzazione(
-    nome VARCHAR(256) NOT NULL
+    nome VARCHAR(256) NOT NULL,
 
     PRIMARY KEY(nome)
 )ENGINE = innodb;
 
 CREATE TABLE ha_ottenuto(
     medico VARCHAR(16) NOT NULL,
-    specializzazione VARCHAR(256) NOT NULL
+    specializzazione VARCHAR(256) NOT NULL,
 
-    PRIMARY KEY(medico)
+    PRIMARY KEY(medico),
     FOREIGN KEY(medico) REFERENCES medico(cod_fiscale)
         ON UPDATE NO ACTION ON DELETE CASCADE
 )ENGINE = innodb;
@@ -74,16 +74,16 @@ CREATE TABLE afferisce(
     FOREIGN KEY(medico) REFERENCES medico(cod_fiscale)
         ON UPDATE NO ACTION ON DELETE CASCADE,
     FOREIGN KEY(reparto) REFERENCES reparto(nome) 
-        ON UPDATE CASCADE ON DELETE CASCADE --TODO
+        ON UPDATE CASCADE ON DELETE CASCADE
 )ENGINE = innodb;
 
 CREATE TABLE si_trova(
     id_letto INTEGER NOT NULL,
     id_camera VARCHAR(1) NOT NULL,
-    reparto VARCHAR(256) NOT NULL
+    reparto VARCHAR(256) NOT NULL,
 
-    PRIMARY KEY (id_letto, reparto)
-    FOREIGN KEY(id_letto, reparto) REFERENCES letto(id, reparto)
+    PRIMARY KEY (id_letto, reparto),
+    FOREIGN KEY(id_letto, reparto) REFERENCES letto(id, reparto),
     FOREIGN KEY(id_camera, reparto) REFERENCES camera(id, reparto)
 )ENGINE = innodb;
 
@@ -91,11 +91,11 @@ CREATE TABLE occupa_attualmente(
     paziente VARCHAR(16) NOT NULL,
     id_letto INTEGER NOT NULL,
     reparto VARCHAR(256) NOT NULL,
-    data_ricovero DATE
+    data_ricovero DATE,
 
-    PRIMARY KEY(paziente)
-    FOREIGN KEY(paziente) REFERENCES paziente(cod_fiscale)
-        ON DELETE CASCADE --TODO on update??
+    PRIMARY KEY(paziente),
+    FOREIGN KEY(paziente) REFERENCES paziente(cod_fiscale),
+        ON DELETE CASCADE --TODO on update?
     FOREIGN KEY(id_letto, reparto) REFERENCES letto(id, reparto)
 )ENGINE = innodb;
 
@@ -104,10 +104,10 @@ CREATE TABLE ricovero_passato(
     id_letto INTEGER NOT NULL,
     reparto VARCHAR(256) NOT NULL,
     data_ricovero DATE NOT NULL,
-    data_dimissioni DATE NOT NULL
+    data_dimissioni DATE NOT NULL,
 
-    PRIMARY KEY(paziente, data_ricovero, data_dimissioni)
-    FOREIGN KEY(paziente) REFERENCES paziente(cod_fiscale)
+    PRIMARY KEY(paziente, data_ricovero, data_dimissioni),
+    FOREIGN KEY(paziente) REFERENCES paziente(cod_fiscale),
     FOREIGN KEY(id_letto, reparto) REFERENCES letto(id, reparto)
         ON DELETE NO ACTION
 )ENGINE = innodb;
@@ -116,11 +116,11 @@ CREATE TABLE diagnosi(
     id INTEGER IDENTITY(1,1),
     medico VARCHAR(16) NOT NULL,
     paziente VARCHAR(16) NOT NULL,
-    descrizione VARCHAR(1000)
+    descrizione VARCHAR(1000),
 
-    PRIMARY KEY(id, medico, paziente)
+    PRIMARY KEY(id, medico, paziente),
     FOREIGN KEY(medico) REFERENCES medico(cod_fiscale)
-        ON DELETE NO ACTION
+        ON DELETE NO ACTION,
     FOREIGN KEY(paziente) REFERENCES paziente(cod_fiscale)
         ON DELETE NO ACTION --TODO
 )ENGINE = innodb;
