@@ -3,7 +3,7 @@ USE ospedale;
 
 --TABELLE
 CREATE TABLE medico(
-    cod_fiscale VARCHAR(16) NOT NULL,
+    cod_fiscale CHAR(16) NOT NULL,
     nome VARCHAR(256) NOT NULL,
     cognome VARCHAR(256) NOT NULL,
     anno_di_nascita INTEGER NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE reparto(
     piano INTEGER NOT NULL,
     letti_disponibili INTEGER NOT NULL,
     letti_occupati INTEGER NOT NULL,
-    primario VARCHAR(16) NOT NULL,
+    primario CHAR(16) NOT NULL,
     data_inizio DATE NOT NULL,
 
     PRIMARY KEY (nome),
@@ -43,7 +43,7 @@ CREATE TABLE letto(
 )ENGINE = innodb;
 
 CREATE TABLE paziente(
-    cod_fiscale VARCHAR(16) NOT NULL,
+    cod_fiscale CHAR(16) NOT NULL,
     nome VARCHAR(256) NOT NULL,
     cognome VARCHAR(256) NOT NULL,
     anno_di_nascita INTEGER NOT NULL,
@@ -58,7 +58,7 @@ CREATE TABLE specializzazione(
 )ENGINE = innodb;
 
 CREATE TABLE ha_ottenuto(
-    medico VARCHAR(16) NOT NULL,
+    medico CHAR(16) NOT NULL,
     specializzazione VARCHAR(256) NOT NULL,
 
     PRIMARY KEY(medico),
@@ -67,7 +67,7 @@ CREATE TABLE ha_ottenuto(
 )ENGINE = innodb;
 
 CREATE TABLE afferisce(
-    medico VARCHAR(16) NOT NULL,
+    medico CHAR(16) NOT NULL,
     reparto VARCHAR(256) NOT NULL,
 
     PRIMARY KEY(medico),
@@ -79,7 +79,7 @@ CREATE TABLE afferisce(
 
 CREATE TABLE si_trova(
     id_letto INTEGER NOT NULL,
-    id_camera VARCHAR(1) NOT NULL,
+    id_camera VARCHAR(2) NOT NULL,
     reparto VARCHAR(256) NOT NULL,
 
     PRIMARY KEY (id_letto, reparto),
@@ -88,19 +88,19 @@ CREATE TABLE si_trova(
 )ENGINE = innodb;
 
 CREATE TABLE occupa_attualmente(
-    paziente VARCHAR(16) NOT NULL,
+    paziente CHAR(16) NOT NULL,
     id_letto INTEGER NOT NULL,
     reparto VARCHAR(256) NOT NULL,
     data_ricovero DATE,
 
     PRIMARY KEY(paziente),
-    FOREIGN KEY(paziente) REFERENCES paziente(cod_fiscale),
-        ON DELETE CASCADE --TODO on update?
+    FOREIGN KEY(paziente) REFERENCES paziente(cod_fiscale)
+        ON DELETE CASCADE,
     FOREIGN KEY(id_letto, reparto) REFERENCES letto(id, reparto)
 )ENGINE = innodb;
 
 CREATE TABLE ricovero_passato(
-    paziente VARCHAR(16) NOT NULL,
+    paziente CHAR(16) NOT NULL,
     id_letto INTEGER NOT NULL,
     reparto VARCHAR(256) NOT NULL,
     data_ricovero DATE NOT NULL,
@@ -113,16 +113,16 @@ CREATE TABLE ricovero_passato(
 )ENGINE = innodb;
 
 CREATE TABLE diagnosi(
-    id INTEGER IDENTITY(1,1),
-    medico VARCHAR(16) NOT NULL,
-    paziente VARCHAR(16) NOT NULL,
+    id INTEGER AUTO_INCREMENT,
+    medico CHAR(16) NOT NULL,
+    paziente CHAR(16) NOT NULL,
     descrizione VARCHAR(1000),
 
     PRIMARY KEY(id, medico, paziente),
     FOREIGN KEY(medico) REFERENCES medico(cod_fiscale)
         ON DELETE NO ACTION,
     FOREIGN KEY(paziente) REFERENCES paziente(cod_fiscale)
-        ON DELETE NO ACTION --TODO
+        ON DELETE NO ACTION
 )ENGINE = innodb;
 
 --indici TODO
