@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - GeneraNumeri",
+            "request": "launch",
+            "mainClass": "GeneraNumeri"
+        }
+    ]
+}
