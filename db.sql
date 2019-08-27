@@ -61,7 +61,7 @@ CREATE TABLE ha_ottenuto(
     medico CHAR(16) NOT NULL,
     specializzazione VARCHAR(256) NOT NULL,
 
-    PRIMARY KEY(medico),
+    PRIMARY KEY(medico, specializzazione),
     FOREIGN KEY(medico) REFERENCES medico(cod_fiscale)
         ON UPDATE NO ACTION ON DELETE CASCADE
 )ENGINE = innodb;
@@ -77,10 +77,10 @@ CREATE TABLE afferisce(
         ON UPDATE CASCADE ON DELETE CASCADE
 )ENGINE = innodb;
 
-CREATE TABLE si_trova(
+CREATE or replace TABLE si_trova(
     id_letto INTEGER NOT NULL,
-    id_camera VARCHAR(2) NOT NULL,
     reparto VARCHAR(256) NOT NULL,
+    id_camera VARCHAR(2) NOT NULL,
 
     PRIMARY KEY (id_letto, reparto),
     FOREIGN KEY(id_letto, reparto) REFERENCES letto(id, reparto),
@@ -132,67 +132,59 @@ CREATE INDEX indice_paziente ON occupa_attualmente (paziente);
 
 DELIMITER $$
 CREATE TRIGGER controlla_afferenza_primario
-    BEFORE INSERT OR UPDATE ON reparto
+    BEFORE INSERT ON reparto
     FOR EACH ROW
 BEGIN
     DECLARE n int;
-    DECLARE rep VARCHAR;
-    SELECT reparto INTO rep FROM afferisce WHERE cod_fiscale = NEW.primario;
     SELECT COUNT(*) INTO n FROM reparto WHERE primario = NEW.primario;
-
-    IF (TG_OP = 'INSERT') THEN
         IF (n > 0) THEN
-            RAISE NOTICE "Il primario inserito risulta già primario in un altro reparto";
-            return null;
+            signal sqlstate '45000' set message_text = 'Il medico inserito risulta già primario in un altro reparto';
         END IF;
-    ELSEIF (TG_OP = 'UPDATE') THEN
-        IF ( NEW.primario != OLD.primario ) THEN
-            IF (n > 0) THEN
-                RAISE NOTICE "Il primario inserito risulta già primario in un altro reparto";
-                return null;
-            ELSEIF ( NEW.nome != rep ) THEN
-                RAISE NOTICE "Il primario che stai inserendo afferisce ad un altro reparto. 
-                Un medico può essere primario solo del reparto in cui afferisce";
-                return null;
-            END IF;
-        END IF;
-    END IF;
-    return NEW;
 END$$
 DELIMITER ;
 
-CREATE OR REPLACE FUNCTION check_anno_nascita()
-RETURNS TRIGGER LANGUAGE PLPGSQL AS
-$$
-BEGIN
-    IF (NEW.anno_di_nascita >= 1993 or NEW.anno_di_nascita <= 1950) THEN
-        RAISE NOTICE 'Hai inserito un anno di nascita non valido';
-        return null;
-    END IF;
-    return new;
-END;
-$$;
-
 DELIMITER $$
-CREATE TRIGGER controlla_anno_nascita_medico
-    BEFORE INSERT OR UPDATE ON medico
+CREATE TRIGGER controlla_modifica_primario
+    BEFORE UPDATE ON reparto
     FOR EACH ROW
-    EXECUTE PROCEDURE check_anno_nascita()
-$$
+BEGIN
+    DECLARE rep varchar(256);
+    DECLARE n int;
+    SELECT COUNT(*) INTO n FROM reparto WHERE primario = NEW.primario;
+    SELECT reparto INTO rep FROM afferisce WHERE medico = NEW.primario;
+    IF ( NEW.primario != OLD.primario ) THEN
+        IF (n > 0) THEN
+            signal sqlstate '45000' set message_text = 'Il medico inserito risulta già primario in un altro reparto';
+        ELSEIF ( NEW.nome != rep ) THEN
+            signal sqlstate '45001' set message_text = 'Il medico inserito come primario risulta afferire ad altro reparto';
+        END IF;
+    END IF;
+END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE TRIGGER controlla_modifica_inserimento_camera
-    BEFORE INSERT OR UPDATE ON si_trova
+CREATE TRIGGER controlla_inserimento_camera
+    BEFORE INSERT ON si_trova
     FOR EACH ROW
 BEGIN
-    DECLARE rep VARCHAR;
+    DECLARE rep char;
     SELECT reparto INTO rep FROM camera WHERE NEW.id_camera = id;
     IF (NEW.reparto != rep) THEN
-        RAISE NOTICE "Stai tentando di spostare/inserire il letto in un reparto che non è il suo";
-        return null;
+        signal sqlstate '45002' set message_text = 'Stai tentando di spostare il letto in un reparto che non è il suo';
     END IF;
-    return new;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE TRIGGER controlla_modifica_camera
+    BEFORE UPDATE ON si_trova
+    FOR EACH ROW
+BEGIN
+    DECLARE rep char;
+    SELECT reparto INTO rep FROM camera WHERE NEW.id_camera = id;
+    IF (NEW.reparto != rep) THEN
+        signal sqlstate '45002' set message_text = 'Stai tentando di spostare il letto in un reparto che non è il suo';
+    END IF;
 END$$
 DELIMITER ;
 
@@ -202,84 +194,45 @@ CREATE TRIGGER controllo_ricovero_dimissioni
     FOR EACH ROW
 BEGIN
     IF(NEW.data_ricovero > NEW.data_dimissioni) THEN
-        RAISE NOTICE "Hai inserito una data di ricovero che è sucessiva a quella delle dimissioni";
-        return null;
+        signal sqlstate '45003' set message_text = 'Hai inserito una data di ricovero che è sucessiva a quella delle dimissioni';
     END IF;
-    --TODO
-    return NEW;
-END$$
-DELIMITER ;
-
-DELIMITER $$
-CREATE TRIGGER controllo_inserimento_diagnosi
-    BEFORE INSERT ON diagnosi
-    FOR EACH ROW
-BEGIN
-    DECLARE reparto_medico varchar;
-    DECLARE reparto_paziente_attuale varchar;
-    DECLARE reparto_paziente_passato varchar;
-    no_errori BOOLEAN := FALSE;
-    SELECT reparto INTO reparto_medico FROM afferisce WHERE NEW.medico = medico;
-    SELECT reparto INTO reparto_paziente_attuale FROM occupa_attualmente WHERE NEW.paziente = paziente;
-    FOR reparto_paziente_passato IN
-        SELECT reparto 
-        FROM ricovero_passato 
-        WHERE NEW.paziente = paziente LOOP
-            IF (reparto_paziente_passato = reparto_medico ) THEN
-                no_errori := TRUE;
-                EXIT;
-            END IF;
-    END LOOP;
-
-    IF (no_errori = FALSE AND reparto_medico != reparto_paziente_attuale) THEN 
-        RAISE NOTICE "Hai inserito una diagnosi fatta da un medico il cui reparto non è quello in cui è (o è stato) ricoverato il paziente";
-        return null;
-    END IF;
-
-    IF(NEW.medico = NEW.paziente) THEN
-        RAISE NOTICE "Hai inserito lo stesso cf sia per medico che per paziente.";
-        return null;
-    END IF;
-
-    return NEW;
 END$$
 DELIMITER ;
 
 DELIMITER $$
 CREATE TRIGGER controllo_assegnazione_letto
-    BEFORE INSERT OR UPDATE ON occupa_attualmente
+    BEFORE INSERT ON occupa_attualmente
     FOR EACH ROW
 BEGIN
     DECLARE letto_occupato int;
     SELECT COUNT(*) INTO letto_occupato FROM occupa_attualmente WHERE NEW.id_letto = id_letto AND NEW.reparto = reparto;
     IF (letto_occupato = 1) THEN
-        RAISE NOTICE "Il letto che stai cercando di assegnare è già occupato";
-        return null;
+        signal sqlstate '45006' set message_text = 'Il letto che stai cercando di assegnare è già occupato';
     END IF;
-    return NEW;
 END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE TRIGGER update_letti_disponibili_occupati
-    AFTER INSERT OR DELETE ON occupa_attualmente
+CREATE TRIGGER insert_update_letti_disponibili_occupati
+    AFTER INSERT ON occupa_attualmente
     FOR EACH ROW
 BEGIN
-    DECLARE rep varchar;
-    IF (TG_OP = 'INSERT') THEN
-        rep := NEW.reparto;
-        UPDATE reparto 
-        SET letti_disponibili = letti_disponibili - 1, letti_occupati = letti_occupati + 1
-        WHERE reparto.nome = rep;
-    ELSEIF (TG_OP = 'DELETE') THEN
-        rep := OLD.reparto;
-        UPDATE reparto 
-        SET letti_disponibili = letti_disponibili + 1, letti_occupati = letti_occupati - 1
-        WHERE reparto.nome = rep;
-    END IF;
+    UPDATE reparto 
+    SET letti_disponibili = letti_disponibili - 1, letti_occupati = letti_occupati + 1
+    WHERE reparto.nome = NEW.reparto;
 END$$
 DELIMITER ;
 
+DELIMITER $$
+CREATE TRIGGER del_update_letti_disponibili_occupati
+    AFTER DELETE ON occupa_attualmente
+    FOR EACH ROW
+BEGIN
+    UPDATE reparto 
+    SET letti_disponibili = letti_disponibili + 1, letti_occupati = letti_occupati - 1
+    WHERE reparto.nome = OLD.reparto;
+END$$
+DELIMITER ;
 
 INSERT INTO medico (cod_fiscale, nome, cognome, anno_di_nascita) VALUES 
 ('0000000000000000', 'Palmiro', 'Ullari', 1967),
@@ -314,8 +267,6 @@ INSERT INTO medico (cod_fiscale, nome, cognome, anno_di_nascita) VALUES
 ('5856455334849193', 'Fabio', 'Darsie', 1962),
 ('2219722864301108', 'Mariassunta', 'Dalla Cia', 1964),
 ('7222181464671416', 'Alessandro', 'Darsie', 1976);
-
-
 
 
 INSERT INTO paziente (cod_fiscale, nome, cognome, anno_di_nascita) VALUES 
@@ -399,7 +350,7 @@ INSERT INTO paziente (cod_fiscale, nome, cognome, anno_di_nascita) VALUES
 ('5487064388113717', 'Rita', 'Vidossi', 1964),
 ('3921585487645661', 'Gianna', 'Ziani', 1982),
 ('9037490306141074', 'Gianmatteo', 'Loiacono', 2000),
-('9755999412118904', 'Riccardo', 'Roma', 1968),--da qua incluso sono pazienti passati
+('9755999412118904', 'Riccardo', 'Roma', 1968),
 ('3138900951277155', 'Clara', 'Romani', 1968),
 ('4974186081642257', 'Clarissa', 'Renzo', 1989),
 ('5305772417244601', 'Renzo', 'Canciani', 1959),
@@ -421,11 +372,9 @@ INSERT INTO paziente (cod_fiscale, nome, cognome, anno_di_nascita) VALUES
 ('9515544710920846', 'Giordano', 'De Luca', 1950);
 
 
-
-
 INSERT INTO specializzazione (nome) VALUES
 ('Medicina interna'),
-('Medicina d’emergenza-urgenza'),
+('Medicina di emergenza e urgenza'),
 ('Geriatria'),
 ('Oncologia'),
 ('Pediatria'),
@@ -436,7 +385,6 @@ INSERT INTO specializzazione (nome) VALUES
 ('Neuropsiachiatria infantile'),
 ('Nefrologia'),
 ('Anestesia'),
-('Psiachiatria'),
 ('Cardiologia'),
 ('Urologia'),
 ('Chirurgia generale'),
@@ -451,7 +399,7 @@ INSERT INTO specializzazione (nome) VALUES
 ('Chirurgia pediatrica'),
 ('Chirurgia vascolare'),
 ('Malattie infettive e tropicali'),
-('Scienza dell’alimentazione'),
+('Scienza della alimentazione'),
 ('Gastroenterologia'),
 ('Allergologia ed Immunologia clinica'),
 ('Dermatologia e Venereologia');
@@ -471,7 +419,7 @@ INSERT INTO reparto (nome, edificio, piano, letti_disponibili, letti_occupati, p
 ('Ortopedia', 2, 2, 20, 0, '5064900651193446', '2017-12-01');
 
 INSERT INTO afferisce (medico, reparto) VALUES
-('0000000000000000', 'Oncologia',
+('0000000000000000', 'Oncologia'),
 ('0000000000000001', 'Oncologia'),
 ('0000000000000002', 'Oncologia'),
 ('1390252630529852', 'Chirurgia'),
@@ -502,7 +450,7 @@ INSERT INTO afferisce (medico, reparto) VALUES
 ('5370097283258201', 'Pronto Soccorso'),
 ('5856455334849193', 'Geriatria'),
 ('2219722864301108', 'Ginecologia'),
-('7222181464671416', 'Pediatria')
+('7222181464671416', 'Pediatria');
 
 INSERT INTO camera (id, reparto) VALUES
 ('A', 'Oncologia'),
@@ -1033,7 +981,7 @@ INSERT INTO occupa_attualmente (paziente, id_letto, reparto, data_ricovero) VALU
 ('3921585487645661', 10, 'Ortopedia', '2019-08-29'),
 ('9037490306141074', 11, 'Ortopedia', '2019-08-21');
 
-INSERT INTO ricovero_passato (paziente, data_ricovero, data_dimissioni, letto, reparto) VALUES
+INSERT INTO ricovero_passato (paziente, data_ricovero, data_dimissioni, id_letto, reparto) VALUES
 ('9755999412118904', '2019-05-25', '2019-05-27', 4, 'Oncologia'),
 ('3138900951277155', '2019-06-15', '2019-06-25', 7, 'Cardiologia'),
 ('4974186081642257', '2019-04-10', '2019-04-10', 5, 'Pronto Soccorso'),
@@ -1058,16 +1006,7 @@ INSERT INTO ricovero_passato (paziente, data_ricovero, data_dimissioni, letto, r
 ('1359567119628313', '2019-01-09', '2019-01-14', 4, 'Chirurgia'),
 ('8886702132777492', '2019-02-21', '2019-02-25', 8, 'Gastroenterologia'),
 ('6347910682766202', '2019-04-23', '2019-04-25', 7, 'Geriatria');
---chirurgia ok
---oncologia ok
---pronto soccorso ok
---geriatria ok
---ginecologia ok
---pediatria ok
---cardiologia ok
---ortopedia ok
---gastroentereologia ok
---urologia ok
+
 
 INSERT INTO diagnosi (medico, paziente, descrizione) VALUES
 ('0000000000000000', '7722850787856033', null),
@@ -1111,7 +1050,7 @@ INSERT INTO ha_ottenuto (medico, specializzazione) VALUES
 ('0000000000000000', 'Oncologia'),
 ('0000000000000001', 'Medicina interna'),
 ('0000000000000001', 'Oncologia'),
-('0000000000000002', 'Medicina d’emergenza-urgenza'),
+('0000000000000002', 'Medicina di emergenza e urgenza'),
 ('1390252630529852', 'Geriatria'),
 ('1390252630529852', 'Chirurgia generale'),
 ('5397339808043402', 'Oncologia'),
@@ -1122,7 +1061,7 @@ INSERT INTO ha_ottenuto (medico, specializzazione) VALUES
 ('3359386196812767', 'Ginecologia ed ostetricia'),
 ('8229483796548314', 'Geriatria'),
 ('9986551251591601', 'Ginecologia ed ostetricia'),
-('9986551251591602', 'Medicina d’emergenza-urgenza'),
+('9986551251591602', 'Medicina di emergenza e urgenza'),
 ('9986551251591602', 'Gastroenterologia'),
 ('9986551251591602', 'Ginecologia'),
 ('6270315354617646', 'Chirurgia plastica, ricostruttiva ed estetica'),
@@ -1147,7 +1086,7 @@ INSERT INTO ha_ottenuto (medico, specializzazione) VALUES
 ('1069677691745915', 'Chirurgia generale'),
 ('7517724820974182', 'Chirurgia generale'),
 ('6182593637417854', 'Urologia'),
-('5370097283258201', 'Medicina d’emergenza-urgenza'),
+('5370097283258201', 'Medicina di emergenza e urgenza'),
 ('5370097283258201', 'Ematologia'),
 ('5856455334849193', 'Geriatria'),
 ('2219722864301108', 'Ginecologia ed ostetricia'),
