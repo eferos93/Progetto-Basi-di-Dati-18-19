@@ -1128,3 +1128,15 @@ WHERE id_camera = 'B' AND
                   WHERE reparto = 'Ginecologia' AND
                         oc.id_letto = st.id_letto);
 
+--Seleziona i pazienti che sono stati ricoverati
+--almeno due volte (contando anche il ricovero attuale)
+
+SELECT *
+FROM (SELECT paziente, COUNT(data_ricovero) AS quantita
+      FROM ((SELECT paziente, data_ricovero
+             FROM ricovero_passato
+             GROUP BY paziente)
+             UNION
+            (SELECT paziente, data_ricovero
+             FROM occupa_attualmente)) 
+    AS prova GROUP BY paziente) AS finale WHERE quantita > 1;
