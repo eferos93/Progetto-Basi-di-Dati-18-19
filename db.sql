@@ -234,6 +234,8 @@ BEGIN
 END$$
 DELIMITER ;
 
+--popolamento
+
 INSERT INTO medico (cod_fiscale, nome, cognome, anno_di_nascita) VALUES 
 ('0000000000000000', 'Palmiro', 'Ullari', 1967),
 ('0000000000000001', 'Pamela', 'Rossi', 1964),
@@ -1043,7 +1045,8 @@ INSERT INTO diagnosi (medico, paziente, descrizione) VALUES
 ('5370097283258201', '8353266679776440', null),
 ('5856455334849193', '6347910682766202', null),
 ('2219722864301108', '1223257734355242', null),
-('7222181464671416', '9274115114979232', null);
+('7222181464671416', '9274115114979232', null),
+('1390252630529852', '5975492463730331', null);
 
 INSERT INTO ha_ottenuto (medico, specializzazione) VALUES
 ('0000000000000000', 'Ortopedia'),
@@ -1091,3 +1094,37 @@ INSERT INTO ha_ottenuto (medico, specializzazione) VALUES
 ('5856455334849193', 'Geriatria'),
 ('2219722864301108', 'Ginecologia ed ostetricia'),
 ('7222181464671416', 'Pediatria');
+
+--query esemplicative
+
+--seleziona i medici che non hanno mai effettuato una diagnosi
+SELECT *
+FROM medico
+WHERE NOT EXISTS (SELECT *
+                  FROM diagnosi
+                  WHERE cod_fiscale = medico);
+
+--I medici che hanno diagnosticato un sottoinsieme proprio dei pazienti diagnosticati da 5397339808043402
+SELECT medico
+FROM diagnosi AS d1
+WHERE medico <> '5397339808043402' 
+                   AND
+                   EXISTS (SELECT *
+                           FROM diagnosi AS d2
+                           WHERE medico = '5397339808043402'
+                           AND 
+                           NOT EXISTS (SELECT *
+                                       FROM diagnosi AS d3
+                                       WHERE d1.medico = d3.medico AND
+                                             d2.paziente <> d3.paziente));
+
+--Il numero di letti disponibili nella camera B del reparto di Ginecologia
+SELECT COUNT(*)
+FROM si_trova st
+WHERE id_camera = 'B' AND
+      reparto = 'Ginecologia' AND
+      NOT EXISTS (SELECT *
+                  FROM occupa_attualmente oc
+                  WHERE reparto = 'Ginecologia' AND
+                        oc.id_letto = st.id_letto);
+
