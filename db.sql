@@ -15,8 +15,8 @@ CREATE OR REPLACE TABLE reparto(
     nome VARCHAR(256) NOT NULL,
     edificio INTEGER NOT NULL,
     piano INTEGER NOT NULL,
-    letti_disponibili INTEGER NOT NULL,
-    letti_occupati INTEGER NOT NULL,
+    letti_disponibili_totali INTEGER NOT NULL,
+    letti_occupati_totali INTEGER NOT NULL,
     primario CHAR(16) NOT NULL,
     data_inizio DATE NOT NULL,
 
@@ -188,7 +188,7 @@ CREATE TRIGGER insert_update_letti_disponibili_occupati
     FOR EACH ROW
 BEGIN
     UPDATE reparto 
-    SET letti_disponibili = letti_disponibili - 1, letti_occupati = letti_occupati + 1
+    SET letti_disponibili_totali = letti_disponibili_totali - 1, letti_occupati_totali = letti_occupati_totali + 1
     WHERE reparto.nome = NEW.reparto;
 END$$
 DELIMITER ;
@@ -199,7 +199,7 @@ CREATE TRIGGER del_update_letti_disponibili_occupati
     FOR EACH ROW
 BEGIN
     UPDATE reparto 
-    SET letti_disponibili = letti_disponibili + 1, letti_occupati = letti_occupati - 1
+    SET letti_disponibili_totali = letti_disponibili_totali + 1, letti_occupati_totali = letti_occupati_totali - 1
     WHERE reparto.nome = OLD.reparto;
 END$$
 DELIMITER ;
@@ -398,7 +398,7 @@ INSERT INTO specializzazione (nome) VALUES
 
 
 
-INSERT INTO reparto (nome, edificio, piano, letti_disponibili, letti_occupati, primario, data_inizio) VALUES
+INSERT INTO reparto (nome, edificio, piano, letti_disponibili_totali, letti_occupati_totali, primario, data_inizio) VALUES
 ('Oncologia', 1, 3, 25, 0, '1846685306030041', '2015-04-06'),
 ('Chirurgia', 1, 2, 25, 0, '2846065032302035', '2018-05-02'),
 ('Pronto Soccorso', 1, 1, 15, 0, '5370097283258201', '2015-04-06'),
