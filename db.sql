@@ -2,7 +2,7 @@ CREATE DATABASE ospedale;
 USE ospedale;
 
 --TABELLE
-CREATE TABLE medico(
+CREATE OR REPLACE TABLE medico(
     cod_fiscale CHAR(16) NOT NULL,
     nome VARCHAR(256) NOT NULL,
     cognome VARCHAR(256) NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE medico(
     PRIMARY KEY(cod_fiscale)
 )ENGINE = innodb;
 
-CREATE TABLE reparto(
+CREATE OR REPLACE TABLE reparto(
     nome VARCHAR(256) NOT NULL,
     edificio INTEGER NOT NULL,
     piano INTEGER NOT NULL,
@@ -22,10 +22,9 @@ CREATE TABLE reparto(
 
     PRIMARY KEY (nome),
     FOREIGN KEY (primario) REFERENCES medico (cod_fiscale)
-        ON UPDATE NO ACTION ON DELETE NO ACTION
 )ENGINE = innodb;
 
-CREATE TABLE camera(
+CREATE OR REPLACE TABLE camera(
     id VARCHAR(2) NOT NULL,
     reparto VARCHAR(256) NOT NULL,
 
@@ -33,16 +32,16 @@ CREATE TABLE camera(
     FOREIGN KEY(reparto) REFERENCES reparto(nome)
 )ENGINE = innodb;
 
-CREATE TABLE letto(
+CREATE OR REPLACE TABLE letto(
     id INTEGER NOT NULL,
     reparto VARCHAR(256) NOT NULL,
 
     PRIMARY KEY(id,reparto), 
     FOREIGN KEY(reparto) REFERENCES reparto(nome) 
-        ON UPDATE NO ACTION ON DELETE CASCADE
+        ON UPDATE CASCADE ON DELETE CASCADE
 )ENGINE = innodb;
 
-CREATE TABLE paziente(
+CREATE OR REPLACE TABLE paziente(
     cod_fiscale CHAR(16) NOT NULL,
     nome VARCHAR(256) NOT NULL,
     cognome VARCHAR(256) NOT NULL,
@@ -51,33 +50,33 @@ CREATE TABLE paziente(
     PRIMARY KEY(cod_fiscale)
 )ENGINE = innodb;
 
-CREATE TABLE specializzazione(
+CREATE OR REPLACE TABLE specializzazione(
     nome VARCHAR(256) NOT NULL,
 
     PRIMARY KEY(nome)
 )ENGINE = innodb;
 
-CREATE TABLE ha_ottenuto(
+CREATE OR REPLACE TABLE ha_ottenuto(
     medico CHAR(16) NOT NULL,
     specializzazione VARCHAR(256) NOT NULL,
 
     PRIMARY KEY(medico, specializzazione),
     FOREIGN KEY(medico) REFERENCES medico(cod_fiscale)
-        ON UPDATE NO ACTION ON DELETE CASCADE
+        ON DELETE CASCADE
 )ENGINE = innodb;
 
-CREATE TABLE afferisce(
+CREATE OR REPLACE TABLE afferisce(
     medico CHAR(16) NOT NULL,
     reparto VARCHAR(256) NOT NULL,
 
     PRIMARY KEY(medico),
     FOREIGN KEY(medico) REFERENCES medico(cod_fiscale)
-        ON UPDATE NO ACTION ON DELETE CASCADE,
+        ON DELETE CASCADE,
     FOREIGN KEY(reparto) REFERENCES reparto(nome) 
         ON UPDATE CASCADE ON DELETE CASCADE
 )ENGINE = innodb;
 
-CREATE or replace TABLE si_trova(
+CREATE OR REPLACE TABLE si_trova(
     id_letto INTEGER NOT NULL,
     reparto VARCHAR(256) NOT NULL,
     id_camera VARCHAR(2) NOT NULL,
@@ -87,7 +86,7 @@ CREATE or replace TABLE si_trova(
     FOREIGN KEY(id_camera, reparto) REFERENCES camera(id, reparto)
 )ENGINE = innodb;
 
-CREATE TABLE occupa_attualmente(
+CREATE OR REPLACE TABLE occupa_attualmente(
     paziente CHAR(16) NOT NULL,
     id_letto INTEGER NOT NULL,
     reparto VARCHAR(256) NOT NULL,
@@ -99,7 +98,7 @@ CREATE TABLE occupa_attualmente(
     FOREIGN KEY(id_letto, reparto) REFERENCES letto(id, reparto)
 )ENGINE = innodb;
 
-CREATE TABLE ricovero_passato(
+CREATE OR REPLACE TABLE ricovero_passato(
     paziente CHAR(16) NOT NULL,
     id_letto INTEGER NOT NULL,
     reparto VARCHAR(256) NOT NULL,
@@ -112,21 +111,18 @@ CREATE TABLE ricovero_passato(
         ON DELETE NO ACTION
 )ENGINE = innodb;
 
-CREATE TABLE diagnosi(
+CREATE OR REPLACE TABLE diagnosi(
     id INTEGER AUTO_INCREMENT,
     medico CHAR(16) NOT NULL,
     paziente CHAR(16) NOT NULL,
     descrizione VARCHAR(1000),
 
     PRIMARY KEY(id, medico, paziente),
-    FOREIGN KEY(medico) REFERENCES medico(cod_fiscale)
-        ON DELETE NO ACTION,
+    FOREIGN KEY(medico) REFERENCES medico(cod_fiscale),
     FOREIGN KEY(paziente) REFERENCES paziente(cod_fiscale)
-        ON DELETE NO ACTION
 )ENGINE = innodb;
 
---indici TODO
-CREATE INDEX indice_paziente ON occupa_attualmente (paziente);
+
 
 --TRIGGER
 
@@ -158,32 +154,6 @@ BEGIN
         ELSEIF ( NEW.nome != rep ) THEN
             signal sqlstate '45001' set message_text = 'Il medico inserito come primario risulta afferire ad altro reparto';
         END IF;
-    END IF;
-END$$
-DELIMITER ;
-
-DELIMITER $$
-CREATE TRIGGER controlla_inserimento_camera
-    BEFORE INSERT ON si_trova
-    FOR EACH ROW
-BEGIN
-    DECLARE rep char;
-    SELECT reparto INTO rep FROM camera WHERE NEW.id_camera = id;
-    IF (NEW.reparto != rep) THEN
-        signal sqlstate '45002' set message_text = 'Stai tentando di spostare il letto in un reparto che non è il suo';
-    END IF;
-END$$
-DELIMITER ;
-
-DELIMITER $$
-CREATE TRIGGER controlla_modifica_camera
-    BEFORE UPDATE ON si_trova
-    FOR EACH ROW
-BEGIN
-    DECLARE rep char;
-    SELECT reparto INTO rep FROM camera WHERE NEW.id_camera = id;
-    IF (NEW.reparto != rep) THEN
-        signal sqlstate '45002' set message_text = 'Stai tentando di spostare il letto in un reparto che non è il suo';
     END IF;
 END$$
 DELIMITER ;
@@ -231,6 +201,26 @@ BEGIN
     UPDATE reparto 
     SET letti_disponibili = letti_disponibili + 1, letti_occupati = letti_occupati - 1
     WHERE reparto.nome = OLD.reparto;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE TRIGGER controlla_inserimento_diagnosi
+    BEFORE INSERT ON diagnosi
+    FOR EACH ROW
+BEGIN
+    DECLARE rep_paziente varchar(256);
+    DECLARE rep_medico varchar(256);
+    IF (NEW.medico = NEW.paziente) THEN
+        signal sqlstate '45007' set message_text = "E' stata inserita una diagnosi con i 
+        campi medico e paziente uguali: un medico non può effettuarsi l'autodiagnosi";
+    END IF;
+    SELECT reparto INTO rep_paziente FROM occupa_attualmente WHERE paziente = NEW.paziente;
+    SELECT reparto INTO rep_medico FROM afferisce WHERE medico = NEW.medico;
+    IF (rep_paziente != rep_medico AND rep_paziente !="") THEN
+        signal sqlstate '45008' set message_text = "Il paziente risulta essere in un reparto al quale il medico inserito non afferisce. 
+        Un medico può effettuare diagnosi solo a pazienti del suo reparto.";
+    END IF;
 END$$
 DELIMITER ;
 
@@ -1094,6 +1084,10 @@ INSERT INTO ha_ottenuto (medico, specializzazione) VALUES
 ('5856455334849193', 'Geriatria'),
 ('2219722864301108', 'Ginecologia ed ostetricia'),
 ('7222181464671416', 'Pediatria');
+
+--indici
+CREATE INDEX indice_paziente ON ricovero_passato (paziente);
+CREATE INDEX indice_diagnosi ON diagnosi (paziente);
 
 --query esemplicative
 

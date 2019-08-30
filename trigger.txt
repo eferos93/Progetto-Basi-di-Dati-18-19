@@ -28,3 +28,30 @@ BEGIN
     END IF;
 END$$
 DELIMITER ;
+
+
+DELIMITER $$
+CREATE TRIGGER controlla_inserimento_camera
+    BEFORE INSERT ON si_trova
+    FOR EACH ROW
+BEGIN
+    DECLARE rep varchar(256);
+    SELECT reparto INTO rep FROM camera WHERE NEW.id_camera = id AND reparto = NEW.reparto;
+    IF (NEW.reparto != rep) THEN
+        signal sqlstate '45002' set message_text = 'Stai tentando di inserire in una camera che non esiste';
+    END IF;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE TRIGGER controlla_modifica_camera
+    BEFORE UPDATE ON si_trova
+    FOR EACH ROW
+BEGIN
+    DECLARE rep varchar(256);
+    SELECT reparto INTO rep FROM camera WHERE NEW.id_camera = id AND NEW.reparto = reparto;
+    IF (NEW.reparto != rep) THEN
+        signal sqlstate '45002' set message_text = 'Stai tentando di spostare il letto in un reparto che non è il suo';
+    END IF;
+END$$
+DELIMITER ;
