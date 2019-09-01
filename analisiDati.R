@@ -24,16 +24,19 @@ barplot(table(tabPazienti$reparto),
 
 barplot(table(tabMedici$reparto),
         main="Numero medici per reparto",
-        xlab="Reparti",ylab="Numero pazienti",
+        xlab="Reparti",ylab="Numero medici",
         ylim = c(0,16),
         cex.names = 0.7
 )
 
-letti <- dbGetQuery(con, "SELECT SUM(letti_disponibili) AS n_letti_disponibili, SUM(letti_occupati) AS n_letti_occupati FROM reparto")
+letti <- dbGetQuery(con, "SELECT SUM(letti_disponibili_totali) AS n_letti_disponibili, SUM(letti_occupati_totali) AS n_letti_occupati FROM reparto")
 temp <- dbGetQuery(con, "SELECT COUNT(*) AS totale_letti FROM letto")
-m <- data.matrix(letti)
-names <- c("letti disponibili", "letti occupati")
 numTotLetti <- temp$totale_letti
+percLettiDisp <- round(letti$n_letti_disponibili/numTotLetti, 2)
+percLettiOcc <- round(letti$n_letti_occupati/numTotLetti, 2)
+m <- data.matrix(letti)
+names <- paste(c("letti disponibili", "letti occupati"), c(percLettiDisp, percLettiOcc))
+
 
 pie(m, labels = names, main="Grafico a torta letti")
 

@@ -1036,7 +1036,8 @@ INSERT INTO diagnosi (medico, paziente, descrizione) VALUES
 ('5856455334849193', '6347910682766202', null),
 ('2219722864301108', '1223257734355242', null),
 ('7222181464671416', '9274115114979232', null),
-('1390252630529852', '5975492463730331', null);
+('1390252630529852', '5975492463730331', null),
+('7517724820974182', '9515544710920846', null);
 
 INSERT INTO ha_ottenuto (medico, specializzazione) VALUES
 ('0000000000000000', 'Ortopedia'),
@@ -1125,12 +1126,15 @@ WHERE id_camera = 'B' AND
 --Seleziona i pazienti che sono stati ricoverati
 --almeno due volte (contando anche il ricovero attuale)
 
+CREATE VIEW numero_ricoveri AS 
+SELECT paziente, COUNT(data_ricovero) AS quantita
+FROM (SELECT paziente, data_ricovero
+      FROM ricovero_passato
+      UNION
+      SELECT paziente, data_ricovero
+      FROM occupa_attualmente) AS prova
+GROUP BY paziente;
+
 SELECT *
-FROM (SELECT paziente, COUNT(data_ricovero) AS quantita
-      FROM ((SELECT paziente, data_ricovero
-             FROM ricovero_passato
-             GROUP BY paziente)
-             UNION
-            (SELECT paziente, data_ricovero
-             FROM occupa_attualmente)) 
-    AS prova GROUP BY paziente) AS finale WHERE quantita > 1;
+FROM numero_ricoveri
+WHERE quantita > 1;
